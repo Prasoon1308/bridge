@@ -8,16 +8,17 @@ contract BridgeL1{
     IToken public token;
     mapping(address=>uint256) accountBalance;
 
-    enum Step {
-        Lock,
-        Unlock
-    }
 
-    event Transfer (
-        address from,
-        address to,
-        uint256 amount,
-        Step indexed step
+    event DepositLog (
+        address indexed from,
+        address indexed to,
+        uint256 indexed amount
+    );
+
+    event WithdrawLog (
+        address indexed from,
+        address indexed to,
+        uint256 indexed amount
     );
 
     constructor(address _token){
@@ -32,7 +33,7 @@ contract BridgeL1{
         require(token.balance(msg.sender)>=amount, "Not sufficient balance to lock");
         accountBalance[msg.sender] += amount;
         token.transfer(msg.sender, address(this), amount);
-        emit Transfer(msg.sender, address(this), amount, Step.Lock);
+        emit DepositLog(msg.sender, address(this), amount);
     }
 
     function withdraw(
@@ -41,6 +42,6 @@ contract BridgeL1{
         require(accountBalance[msg.sender]>=amount, "Not sufficient balance locked");
         accountBalance[msg.sender] -= amount;
         token.transfer(address(this), msg.sender, amount);
-        emit Transfer(msg.sender, address(this), amount, Step.Unlock);
+        emit WithdrawLog(msg.sender, address(this), amount);
     }
 }
