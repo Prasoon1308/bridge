@@ -1,0 +1,10 @@
+{
+    "goerli": {
+        "BridgeL1": "0x92f3a7DC443996D3eA8E517F80c09F94B819bc68",
+        "TokenA": "0xF8b42e2a7103F7205B06687345e169847164980a"
+    },
+    "mumbai": {
+        "BridgeL2": "0x0b41EE19DFaF49D76E1Dc52F76a8E6b36492b82b",
+        "TokenB": "0x17E3055931e3405d163eD58cb29A437ac347Bf49"
+    }
+}
