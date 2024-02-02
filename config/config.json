@@ -1,12 +1,12 @@
 {
     "BridgeFactory": {
-        "goerli": "0x23B9d67dc133438C345517cA862Cd5EC84419740"
+        "goerli": "0x0C8665914F360C5876CAa7308aC0a6189287f7D8"
     },
     "BridgeDeployer": {
-        "mumbai": "0x3c0FFeB24a7CF4875Eeb3F1A0D92e19243d59402"
+        "mumbai": "0xd7895E9518C7510926E5Eb290145A45ae6f5C929"
     },
     "TL1": {
         "goerli": "0x2a1c83A9a6C2155356514FEa8D128c5e1ECa7cf6",
-        "mumbai": "0x609Ca7124D6C64e47778DB43fd789d1D42505e50"
+        "mumbai": "0x1c623028370CA2CFA07497ca56162E8a2c2c7951"
     }
 }
