@@ -11,12 +11,8 @@ const tokenL2Abi = require("../ABI/TokenL2.json");
 
 const bridgeFactoryAddress = config.BridgeFactory.goerli;
 const bridgeDeployerAddress = config.BridgeDeployer.mumbai;
-const rootTokenAddress = config.TL1.goerli;
-const childTokenAddress = config.TL1.mumbai;
-console.log(bridgeFactoryAddress);
-console.log(bridgeDeployerAddress);
-console.log(rootTokenAddress);
-console.log(childTokenAddress);
+console.log("BridgeFactory Address on L1:", bridgeFactoryAddress);
+console.log("BridgeDeployer Address on L2:", bridgeDeployerAddress);
 
 const goerliProvider = new ethers.providers.JsonRpcProvider(
   `https://goerli.infura.io/v3/${INFURA_API_KEY}`
@@ -38,16 +34,6 @@ const bridgeDeployer = new ethers.Contract(
   bridgeDeployerAbi,
   mumbaiProvider
 );
-const childToken = new ethers.Contract(
-  childTokenAddress,
-  tokenL2Abi,
-  mumbaiProvider
-);
-const rootToken = new ethers.Contract(
-  rootTokenAddress,
-  tokenL1Abi,
-  goerliProvider
-);
 
 console.log("starting");
 
@@ -58,54 +44,99 @@ const filter4 = bridgeDeployer.filters.mintLog(null, null, null);
 const filter5 = bridgeDeployer.filters.burnLog(null, null, null);
 
 // DEPOSIT ON L1 ---> MINT ON L2
-cron.schedule("* * * * *", async function () {
-  try {
-    bridgeFactory.on(
-      filter1,
-      async (tokenAddress, fromAddress, amount, event) => {
-        console.log(
-          "RootToken Address: ",
-          tokenAddress,
-          "Deposited on L1 from: ",
-          fromAddress,
-          "Amount: ",
-          amount.toNumber()
-        );
+try {
+  bridgeFactory.on(
+    filter1,
+    async (rootTokenAddress, fromAddress, amount, event) => {
+      console.log(
+        "RootToken Address: ",
+        rootTokenAddress,
+        "Deposited on L1 from: ",
+        fromAddress,
+        "Amount: ",
+        amount.toNumber()
+      );
 
-        const tx = await bridgeDeployer
-          .connect(accountY)
-          .mintOnL2(rootTokenAddress, fromAddress, amount.toNumber());
-        receipt = await tx.wait();
-        console.log(receipt);
-      }
-    );
-  } catch (error) {
-    console.log(error);
-  }
-});
+      const tx = await bridgeDeployer
+        .connect(accountY)
+        .mintOnL2(rootTokenAddress, fromAddress, amount.toNumber());
+      receipt = await tx.wait();
+      console.log(receipt);
+      let childTokenAddress = await bridgeDeployer.rootToChild(
+        rootTokenAddress
+      );
+      console.log(
+        "ChildToken Address: ",
+        childTokenAddress,
+        "Minted on L2 to: ",
+        fromAddress,
+        "Amount: ",
+        amount.toNumber()
+      );
+    }
+  );
+} catch (error) {
+  console.log("Error in Deposit on L1 ---> Mint on L2!");
+  console.log(error);
+}
+
 // BURN ON L2 ---> WITHDRAW ON L1
-cron.schedule("* * * * *", async function () {
-  try {
-    bridgeDeployer.on(
-      filter5,
-      async (tokenAddress, fromAddress, amount, event) => {
-        console.log(
-          "ChildToken Address: ",
-          tokenAddress,
-          "Burn on L2 from: ",
-          fromAddress,
-          "Amount: ",
-          amount.toNumber()
-        );
+try {
+  bridgeDeployer.on(
+    filter5,
+    async (childTokenAddress, fromAddress, amount, event) => {
+      console.log(
+        "ChildToken Address: ",
+        childTokenAddress,
+        "Burn on L2 from: ",
+        fromAddress,
+        "Amount: ",
+        amount.toNumber()
+      );
 
-        const tx = await bridgeFactory
-          .connect(accountX)
-          .withdrawOnL1(tokenAddress, fromAddress, amount.toNumber());
-        receipt = await tx.wait();
-        console.log(receipt);
-      }
-    );
-  } catch (error) {
-    console.log(error);
-  }
-});
+      const tx = await bridgeFactory
+        .connect(accountX)
+        .withdrawOnL1(childTokenAddress, fromAddress, amount.toNumber());
+      receipt = await tx.wait();
+      console.log(receipt);
+      let rootTokenAddress = await bridgeFactory.childToRoot(childTokenAddress);
+      console.log(
+        "RootToken Address: ",
+        rootTokenAddress,
+        "Withdrawn on L1 to: ",
+        fromAddress,
+        "Amount: ",
+        amount.toNumber()
+      );
+    }
+  );
+} catch (error) {
+  console.log("Error in Burn on L2 ---> Withdraw on L1!");
+  console.log(error);
+}
+
+// NEW BRIDGE DEPLOYED
+try {
+  bridgeDeployer.on(
+    filter3,
+    async (rootTokenAddress, childTokenAddress, event) => {
+      console.log("New Bridge Deployed on L2");
+
+      const tx = await bridgeFactory
+        .connect(accountX)
+        .setBridge(rootTokenAddress, childTokenAddress);
+      receipt = await tx.wait();
+      console.log(receipt);
+      console.log("Bridge connected on L1");
+      console.log(
+        "RootToken Address:",
+        rootTokenAddress,
+        "ChildToken Address: ",
+        childTokenAddress
+      );
+    }
+  );
+} catch (error) {
+  console.log("Error while connecting bridge on L1!");
+  console.log(error);
+}
