@@ -27,7 +27,7 @@
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "tokenAddress",
+				"name": "rootTokenAddress",
 				"type": "address"
 			},
 			{
@@ -71,7 +71,7 @@
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "tokenAddress",
+				"name": "rootTokenAddress",
 				"type": "address"
 			},
 			{
@@ -94,7 +94,7 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_token",
+				"name": "_rootToken",
 				"type": "address"
 			}
 		],
@@ -113,7 +113,26 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_token",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "childToRoot",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_rootToken",
 				"type": "address"
 			},
 			{
@@ -151,6 +170,25 @@
 		"inputs": [
 			{
 				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "rootToChild",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
 				"name": "_rootToken",
 				"type": "address"
 			},
@@ -182,7 +220,7 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_rootToken",
+				"name": "_childToken",
 				"type": "address"
 			},
 			{

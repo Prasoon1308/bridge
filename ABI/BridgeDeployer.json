@@ -113,7 +113,7 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_rootToken",
+				"name": "_childToken",
 				"type": "address"
 			},
 			{
@@ -131,11 +131,30 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_rootToken",
+				"name": "_childToken",
 				"type": "address"
 			}
 		],
 		"name": "checkBridge",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "childToRoot",
 		"outputs": [
 			{
 				"internalType": "address",
@@ -187,6 +206,25 @@
 		"name": "renounceOwnership",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "rootToChild",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
