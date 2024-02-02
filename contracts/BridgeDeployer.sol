@@ -12,13 +12,13 @@ contract BridgeDeployer is Ownable(msg.sender){
         address indexed childTokenAddress
     );
     event mintLog(
-        address indexed rootTokenAddress,
+        address indexed childTokenAddress,
         address indexed to,
         uint256 indexed amount
     );
 
     event burnLog(
-        address indexed rootTokenAddress,
+        address indexed childTokenAddress,
         address indexed from,
         uint256 indexed amount
     );
@@ -40,11 +40,11 @@ contract BridgeDeployer is Ownable(msg.sender){
         }
         TokenL2 tokenL2 = TokenL2(rootToChild[_rootToken]);
         tokenL2.mint(_userAddress, _amount);
-        emit mintLog(_rootToken, _userAddress, _amount);
+        emit mintLog(rootToChild[_rootToken], _userAddress, _amount);
     }
-    function burnOnL2(address _rootToken, uint256 _amount) external {
-        TokenL2 tokenL2 = TokenL2(rootToChild[_rootToken]);
+    function burnOnL2(address _childToken, uint256 _amount) external {
+        TokenL2 tokenL2 = TokenL2(_childToken);
         tokenL2.burn(msg.sender, _amount);
-        emit burnLog(_rootToken, msg.sender, _amount);
+        emit burnLog(_childToken, msg.sender, _amount);
     }
 }
