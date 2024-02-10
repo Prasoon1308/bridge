@@ -1,13 +1,12 @@
 const { ethers } = require("ethers");
-const { AbiCoder } = require("ethers/lib/utils");
 require("dotenv").config();
 const { INFURA_API_KEY, PRIVATE_KEY } = process.env;
 
 const domain = {
   name: "BridgeDeployerV3",
-  version: "1",
+  version: "3",
   chainId: 80001,
-  verifyingContract: "0x6a34065C6f39AF4FE958f587a3a5e2Ae55c6e856", // BridgeDeployer address on L2
+  verifyingContract: "0xf3D1B7fcb3B37D281511b7BaB0EA7e434faf512A", // BridgeDeployer address on L2
 };
 
 const types = {
@@ -15,6 +14,7 @@ const types = {
     { name: "rootToken", type: "address" },
     { name: "userAddress", type: "address" },
     { name: "amount", type: "uint256" },
+    { name: "transactionNonce", type: "uint256" },
   ],
 };
 
@@ -22,40 +22,40 @@ const value = {
   rootToken: "0xb5b722fDedF4AE1C509ecE7816266B6E51b0402A", // TokenL1 address on L1
   userAddress: "0x87B940e50c82b5498896ba43003Bf8cA26f717FB", // User address
   amount: 10,
+  transactionNonce: 1,
 };
 
 async function signAndData() {
-  const goerliProvider = new ethers.providers.JsonRpcProvider(
+  const goerliProvider = new ethers.JsonRpcProvider(
     `https://goerli.infura.io/v3/${INFURA_API_KEY}`
   );
-  const mumbaiProvider = new ethers.providers.JsonRpcProvider(
+  const mumbaiProvider = new ethers.JsonRpcProvider(
     `https://polygon-mumbai.infura.io/v3/${INFURA_API_KEY}`
   );
   const accountX = new ethers.Wallet(`0x${PRIVATE_KEY}`).connect(goerliProvider);
   
   const accountY = new ethers.Wallet(`0x${PRIVATE_KEY}`).connect(mumbaiProvider);
-  console.log(accountY.address)
   
   try {
     console.log("wallet---",accountY.address);
-    const MINT_TYPEHASH = await ethers.utils.keccak256(
-      ethers.utils.solidityPack(
+    const MINT_TYPEHASH = await ethers.keccak256(
+      ethers.solidityPacked(
         ["string"],
-        ["MintOnL2(address rootToken,address userAddress,uint256 amount)"]
+        ["MintOnL2(address rootToken,address userAddress,uint256 amount,uint256 transactionNonce)"]
       )
     );
     console.log("MINT_TYPEHASH---------:", MINT_TYPEHASH);
 
-    const abiCoder = new ethers.utils.AbiCoder();
+    const abiCoder = new ethers.AbiCoder();
     const data = await abiCoder.encode(
-      ["bytes32", "address", "address", "uint256"],
-      [MINT_TYPEHASH, value.rootToken, value.userAddress, value.amount]
+      ["bytes32", "address", "address", "uint256", "uint256"],
+      [MINT_TYPEHASH, value.rootToken, value.userAddress, value.amount, value.transactionNonce]
     );
     console.log("data---------:", data);
-    const dataHash = await ethers.utils.keccak256(data);
+    const dataHash = await ethers.keccak256(data);
     console.log("structHash---------:", dataHash);
 
-    const signature = await accountY._signTypedData(domain, types, value);
+    const signature = await accountY.signTypedData(domain, types, value);
     console.log("signature---------:", signature);
   } catch (error) {
     console.log("error-----:", error);
