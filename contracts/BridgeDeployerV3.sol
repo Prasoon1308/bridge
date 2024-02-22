@@ -17,7 +17,8 @@ contract BridgeDeployerV3 is Ownable(msg.sender) {
             "MintOnL2(address rootToken,address userAddress,uint256 amount,uint256 transactionNonce)"
         );
 
-    address public signatureAddress;
+    address signatureAddress;
+    uint256 platformFees;
 
     mapping(address => address) public rootToChild;
     mapping(address => address) public childToRoot;
@@ -60,21 +61,26 @@ contract BridgeDeployerV3 is Ownable(msg.sender) {
         );
     }
 
+    function updatePlatformFees(uint256 _fees) external onlyOwner {
+        platformFees = _fees;
+    }
+
     function checkBridge(address _childToken) external view returns (address) {
         return childToRoot[_childToken];
     }
 
+    //! make sure this is not onlyOwner
     function newBridgeDeploy(
         address _rootToken,
         string memory _name,
         string memory _symbol
-    ) external onlyOwner returns (address _childToken) {
+    ) internal {
         require(
             rootToChild[_rootToken] == address(0),
             "Bridge is already existing!"
         );
         TokenL2 tokenL2 = new TokenL2(_name, _symbol);
-        _childToken = address(tokenL2);
+        address _childToken = address(tokenL2);
         rootToChild[_rootToken] = _childToken;
         childToRoot[_childToken] = _rootToken;
         emit bridgeDeployedLog(_rootToken, _childToken);
@@ -107,11 +113,9 @@ contract BridgeDeployerV3 is Ownable(msg.sender) {
             uint256 _amount,
             uint256 _nonce
         ) = abi.decode(_data, (bytes32, address, address, uint256, uint256));
-
-        require(
-            rootToChild[_rootToken] != address(0),
-            "Let the child token be deployed first!"
-        );
+        if (rootToChild[_rootToken] == address(0)) {
+            newBridgeDeploy(_rootToken, "childToken", "CT");
+        }
 
         address signer = validateSignature(
             _rootToken,
@@ -135,10 +139,20 @@ contract BridgeDeployerV3 is Ownable(msg.sender) {
         );
     }
 
+    //! platform fees while calling function -- in ether; function should be payable
     function burnOnL2(address _childToken, uint256 _amount) external {
+        // require(msg.value == platformFees, "Send platform fees in ether");
         TokenL2 tokenL2 = TokenL2(_childToken);
         nonce[msg.sender]++;
         tokenL2.burn(msg.sender, _amount);
         emit burnLog(_childToken, msg.sender, _amount, nonce[msg.sender]);
+    }
+
+    function withdrawFees() external onlyOwner {
+        // Ensure there are fees to withdraw
+        require(address(this).balance > 0, "No fees to withdraw");
+
+        // Transfer the entire balance to the owner
+        payable(owner()).transfer(address(this).balance);
     }
 }

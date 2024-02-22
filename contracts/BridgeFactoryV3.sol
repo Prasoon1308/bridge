@@ -18,7 +18,8 @@ contract BridgeFactoryV3 is Ownable(msg.sender) {
             "WithdrawOnL1(address childToken,address userAddress,uint256 amount,uint256 transactionNonce)"
         );
 
-    address public signatureAddress;
+    uint256 platformFees;
+    address signatureAddress;
 
     mapping(address => address) public rootToChild;
     mapping(address => address) public childToRoot;
@@ -41,7 +42,7 @@ contract BridgeFactoryV3 is Ownable(msg.sender) {
 
     constructor(address adminAddress) {
         signatureAddress = adminAddress;
-
+        // platformFees = 1e16 wei;
         // Set up EIP-712 domain separator
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -54,6 +55,10 @@ contract BridgeFactoryV3 is Ownable(msg.sender) {
                 address(this)
             )
         );
+    }
+
+    function updatePlatformFees(uint256 _fees) external onlyOwner {
+        platformFees = _fees;
     }
 
     function checkBridge(address _rootToken) external view returns (address) {
@@ -92,7 +97,9 @@ contract BridgeFactoryV3 is Ownable(msg.sender) {
         return signer;
     }
 
+    //! platform fees while calling function -- in ether; function should be payable
     function depositOnL1(address _rootToken, uint256 _amount) external {
+        // require(msg.value == platformFees, "Send platform fees in ether");
         TokenL1 tokenL1 = TokenL1(_rootToken);
         nonce[msg.sender]++;
         tokenL1.transfer(msg.sender, address(this), _amount);
@@ -133,5 +140,13 @@ contract BridgeFactoryV3 is Ownable(msg.sender) {
             _amount,
             nonce[msg.sender]
         );
+    }
+
+    function withdrawFees() external onlyOwner{
+    // Ensure there are fees to withdraw
+    require(address(this).balance > 0, "No fees to withdraw");
+
+    // Transfer the entire balance to the owner
+    payable(owner()).transfer(address(this).balance);
     }
 }
